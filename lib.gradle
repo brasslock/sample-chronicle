@@ -1,0 +1,17 @@
+class DependencyMap {
+    private final Map entries = [:]
+
+    def setEntries(Map values) {
+        entries.putAll(values)
+    }
+
+    def propertyMissing(String name) {
+        def value = entries.get(name)
+        if (value == null) {
+            throw new RuntimeException("Library '${name}' is not defined")
+        }
+        value
+    }
+}
+
+project.extensions.create("lib", DependencyMap)

@@ -1,0 +1,29 @@
+dependencies {
+    compile lib.guava
+    compile lib.jacksonAnnotations
+    compile lib.jacksonCore
+    compile lib.jacksonDatabind
+    compile lib.slf4jApi
+
+    // should be runtime, but Intellij does not recognise
+    compile lib.logbackClassic
+
+    testCompile lib.assertj
+    testCompile lib.jsonUnitCore
+    testCompile lib.jsonUnitFluent
+    testCompile lib.junit
+    testCompile lib.mockito
+    testCompile lib.unitils
+}
+
+task libs(type: Sync) {
+    from configurations.runtime
+    into "$buildDir/runtime-libs"
+}
+
+task runStub(type: JavaExec) {
+    main = 'org.brasslock.StubApp'
+    classpath sourceSets.main.runtimeClasspath
+    workingDir rootProject.projectDir
+    args 'hello', 'world'
+}

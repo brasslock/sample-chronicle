@@ -1,0 +1,86 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+apply from: "lib.gradle"
+
+def slf4jVersion = '1.7.21'
+def logbackVersion = '1.1.7'
+def jacksonVersion = '2.7.0'
+
+lib.entries = [
+    assertj: "org.assertj:assertj-core:3.3.0",
+    guava: "com.google.guava:guava:20.0",
+    guice: "com.google.inject:guice:4.0",
+    jacksonAnnotations: "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}",
+    jacksonCore: "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}",
+    jacksonDatabind: "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}",
+    javaxInject: "javax.inject:javax.inject:1",
+    jsonUnitCore: "net.javacrumbs.json-unit:json-unit-core:1.9.0",
+    jsonUnitFluent: "net.javacrumbs.json-unit:json-unit-fluent:1.9.0",
+    junit: "junit:junit:4.12",
+    logbackClassic: "ch.qos.logback:logback-classic:${logbackVersion}",
+    logbackCore: "ch.qos.logback:logback-core:${logbackVersion}",
+    mockito: "org.mockito:mockito-core:2.2.9",
+    slf4jApi: "org.slf4j:slf4j-api:${slf4jVersion}",
+    slf4jFromJul: "org.slf4j:jul-to-slf4j:${slf4jVersion}",
+    slf4jFromLog4j: "org.slf4j:log4j-over-slf4j:${slf4jVersion}",
+    unitils: "org.unitils:unitils-core:3.4.2",
+]
+
+subprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    // Temporary build files directly below root project
+    buildDir = new File(rootDir, "build/${project.name}")
+
+    // Naming of artifacts
+    archivesBaseName = "brasslock-${rootProject.name}-${project.archivesBaseName}"
+
+    // Enforce package names within specified structure
+    def packagePath = "org/brasslock/${rootProject.name}/${project.name}"
+
+    repositories {
+        mavenCentral()
+    }
+
+    configurations.all {
+        resolutionStrategy {
+            failOnVersionConflict()
+            force lib.junit
+            force lib.slf4jApi
+        }
+    }
+
+    compileJava {
+        doFirst {
+            def outside = sourceSets.main.java.matching { exclude packagePath }.files
+            if (!outside.empty) {
+                throw new RuntimeException("Invalid packages. Classes ${outside} not in expected package '${packagePath}'")
+            }
+        }
+    }
+
+    compileTestJava {
+        doFirst {
+            def outside = sourceSets.test.java.matching { exclude packagePath }.files
+            if (!outside.empty) {
+                throw new RuntimeException("Invalid packages. Classes ${outside} not in expected package '${packagePath}'")
+            }
+        }
+    }
+
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
+    distributionType = 'ALL'
+}
